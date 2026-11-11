@@ -7,4 +7,12 @@ fi
 LINVER=$(@SRCDIR@/scripts/vers @LIN_VER@ -C)
 
 cd mlx5
+
+# Some distro kernels (e.g. Ubuntu 6.8.0-149) backported the upstream removal
+# of UDP_TUNNEL_NIC_INFO_MAY_SLEEP, which older MLNX_EN releases still use.
+if ! grep -q UDP_TUNNEL_NIC_INFO_MAY_SLEEP @KSRC@/include/net/udp_tunnel.h 2>/dev/null; then
+	sed -i -e 's/UDP_TUNNEL_NIC_INFO_MAY_SLEEP *| *//' \
+		drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+fi
+
 ./configure --mlnx_en --kernel-version=$LINVER --kernel-sources=@KSRC@ -j$(nproc)
